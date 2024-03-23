@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <Perceptron/mat_functions.h>
+#include <omp.h>
 
 #define K 1
 
@@ -88,14 +89,15 @@ void Perceptron::Learn(){
 }
 
 
-void Perceptron::Render(uint32_t* out_color, uint32_t width, uint32_t height){
+void Perceptron::kernel2D_Render(uint32_t* out_color, uint32_t width, uint32_t height){
 	const float MAX_DISTANCE = 2.0f;
 	prop_data props = { layers, data, layersNum };
 
+	#pragma omp for
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			float3 pixel = float3(0.0f);
-			float3 ro = float3(0.0f, 0.2f, -0.8f);
+			float3 ro = float3(0.0f, 0.4f, -0.8f);
 			float2 uv = getUV(float2(0.0f), x, y, width, height);
 			float3 rd = normalize(float3(uv.x, uv.y, 1.0f));
 
@@ -112,8 +114,6 @@ void Perceptron::Render(uint32_t* out_color, uint32_t width, uint32_t height){
 				if (t > MAX_DISTANCE || distance < 1e-5) break;
 			}
 
-			//if (y == 0) cout << t << "\n";
-
 			if (t < MAX_DISTANCE) {
 				pixel = getLight(p, rd, float3(1.0f), &props);
 			}
@@ -127,7 +127,10 @@ void Perceptron::Render(uint32_t* out_color, uint32_t width, uint32_t height){
 void Perceptron::RayMarch(uint32_t* out_color, uint32_t width, uint32_t height) {
 	auto start = std::chrono::high_resolution_clock::now();
 
-	Render(out_color, width, height);
+	#pragma omp parallel
+	{
+		kernel2D_Render(out_color, width, height);
+	}
 
 	totalTime = float(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start).count()) / 1000.f;
 };

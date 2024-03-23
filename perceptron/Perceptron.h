@@ -17,7 +17,7 @@ public:
     }
 
     virtual void Learn();
-    virtual void Render(uint32_t* out_color, uint32_t width, uint32_t height);
+    virtual void kernel2D_Render(uint32_t* out_color, uint32_t width, uint32_t height);
     virtual void Test(float3* coords, float* distances, uint32_t size);
     virtual void RayMarch(uint32_t* out_color [[size("width*height")]], uint32_t width, uint32_t height);
 
