@@ -10,13 +10,13 @@ using namespace LiteMath;
 
 class Files{
 public:
-    static void parse_layers(std::string path, std::vector<Layer>* layers){
+    static void parse_layers(const char* path, std::vector<Layer>* layers){
         std::ifstream f(path);
         json data = json::parse(f);
 
         try {
             if (data.contains("inputLayer")) {
-                layers->push_back(read_layer(data["inputLayer"]));
+                layers->push_back(parse_layer(data["inputLayer"]));
             }
             else {
                 throw "No input layer!";
@@ -26,13 +26,13 @@ public:
                 int n = data["hiddenLayers"].size();
 
                 for (int i = 0; i < n; i++) {
-                    layers->push_back(read_layer(data["hiddenLayers"][i]));
+                    layers->push_back(parse_layer(data["hiddenLayers"][i]));
                 }
             }
 
 
             if (data.contains("outputLayer")) {
-                layers->push_back(read_layer(data["outputLayer"]));
+                layers->push_back(parse_layer(data["outputLayer"]));
             }
             else {
                 throw "No output layer!";
