@@ -1,0 +1,5 @@
+{
+    "inputLayer": {"input": 3, "output": 64},
+    "hiddenLayers": [{"input": 64, "output": 64}, {"input": 64, "output": 64} ],
+    "outputLayer": {"input": 64, "output": 1}
+}

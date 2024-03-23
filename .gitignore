@@ -1,0 +1,7 @@
+.vs
+out
+external/LiteMath
+external/vk-utils
+external/volk
+cmake-build-cpu-release
+cmake-build-gpu-release

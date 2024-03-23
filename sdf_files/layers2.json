@@ -1,0 +1,5 @@
+{
+    "inputLayer": {"input": 3, "output": 256},
+    "hiddenLayers": [{"input": 256, "output": 256}, {"input": 256, "output": 256}, {"input": 256, "output": 256}, {"input": 256, "output": 256} ],
+    "outputLayer": {"input": 256, "output": 1}
+}
