@@ -16,9 +16,9 @@ public:
         layersNum = ln;
     }
 
-    virtual void Learn();
+    virtual void Learn(float3* points, float* expected_distances);
     virtual void kernel2D_Render(uint32_t* out_color, uint32_t width, uint32_t height);
-    virtual void Test(float3* coords, float* distances, uint32_t size);
+    virtual void Test(float3* points, float* expected_distances, uint32_t size);
     virtual void RayMarch(uint32_t* out_color [[size("width*height")]], uint32_t width, uint32_t height);
 
     virtual void CommitDeviceData() {}                                // will be overriden in generated class

@@ -11,32 +11,55 @@
 struct prop_data {
 	Layer* layers;
 	WeightsData data;
+
 	int layersNum;
 };
 
-float Forward_propagation(float3 coords, prop_data* props) {
-	std::vector<float> result = init_mat({coords.x, coords.y, coords.z}, 3, 1);
+struct output_data {
+	float* t;
+	float* h;
+	int* offsets;
+	float distance;
+};
+
+output_data Forward_propagation(float3 coords, prop_data* props) {
+	matrix result = init_mat(coords, 3, 1);
 
 	Layer* layers = props->layers;
 	WeightsData data = props->data;
 
 	int layersNum = props->layersNum;
 
+	// fill per layer struct
+	output_data out;
+	out.offsets = props->data.biases_offsets.data();
+	out.t = (float*)calloc(props->data.biases.size(), sizeof(float));
+	out.h = (float*)calloc(props->data.biases.size(), sizeof(float));
+
 	for (int i = 0; i < layersNum - 1; i++) {
-		result = multiply_mat(data.weights.data(), result.data(), layers[i].output, layers[i].input, 1, data.weights_offsets[i]);
-		result = add_mat(result.data(), data.biases.data(), layers[i].output, 1, data.biases_offsets[i]);
+		matrix weights = { data.weights.data(), layers[i].output, layers[i].input};
+		result = multiply_mat(&weights, &result, data.weights_offsets[i]);
+
+		matrix biases = { data.biases.data(), layers[i].output, 1 };
+		result = add_mat(&result, &biases, data.biases_offsets[i]);
+
+		memcpy(&out.t[data.biases_offsets[i]], result.data, layers[i].output * sizeof(float));
+
 		sin_mat(&result, layers[i].output, 1);
+		memcpy(&out.h[data.biases_offsets[i]], result.data, layers[i].output * sizeof(float));
 	}
 
 	// doesn't apply sin func to the output layer
-	result = multiply_mat(data.weights.data(), result.data(),
-		layers[layersNum - 1].output, layers[layersNum - 1].input, 
-		1, data.weights_offsets[layersNum - 1]);
+	matrix weights = { data.weights.data(), layers[layersNum - 1].output, layers[layersNum - 1].input };
+	result = multiply_mat(&weights, &result, data.weights_offsets[layersNum - 1]);
 
-	result = add_mat(result.data(), data.biases.data(), layers[layersNum - 1].output, 1, data.biases_offsets[layersNum - 1]);
+	matrix biases = { data.biases.data(), layers[layersNum - 1].output, 1 };
+	result = add_mat(&result, &biases, data.biases_offsets[layersNum - 1]);
 
 	// the final result is matrix 1x1 - number
-	return result[0];
+	out.distance = result.data[0];
+
+	return out;
 }
 
 float3 EstimateNormal(float3 z, float eps, prop_data* data) {
@@ -46,9 +69,9 @@ float3 EstimateNormal(float3 z, float eps, prop_data* data) {
 	float3 z4 = z - float3(0, eps, 0);
 	float3 z5 = z + float3(0, 0, eps);
 	float3 z6 = z - float3(0, 0, eps);
-	float dx = Forward_propagation(z1, data) - Forward_propagation(z2, data);
-	float dy = Forward_propagation(z3, data) - Forward_propagation(z4, data);
-	float dz = Forward_propagation(z5, data) - Forward_propagation(z6, data);
+	float dx = Forward_propagation(z1, data).distance - Forward_propagation(z2, data).distance;
+	float dy = Forward_propagation(z3, data).distance - Forward_propagation(z4, data).distance;
+	float dz = Forward_propagation(z5, data).distance - Forward_propagation(z6, data).distance;
 	return normalize(float3(dx, dy, dz));
 }
 
@@ -84,8 +107,36 @@ float2 getUV(float2 offset, int x, int y, int width, int heigth) {
 	return ((float2(x, y) - offset) * 2.0f / float2(width, heigth) - 1.0f) * float2(ratio, 1.0f);
 }
 
-void Perceptron::Learn(){
-	std::cout << "dwa";
+float MSE(float act, float pred) {
+	float dif = act - pred;
+	dif *= dif;
+
+	return dif;
+}
+
+float MSE_grad(float act, float pred) {
+	float dif = act - pred;
+	return dif * 2;
+}
+
+float* to_full(float t, int size) {
+	float* full = (float*)calloc(size, sizeof(float));
+	for (int i = 0; i < size; i++) {
+		full[i] = size;
+	}
+	return full;
+}
+
+void Perceptron::Learn(float3* points, float* expected){
+	//prop_data props = { layers, data, layersNum };
+	//output_data out = Forward_propagation(points[0], &props);
+	//float act = out.distance;
+
+	//float t = MSE(act, expected[0]);
+	//float* t_full = to_full(t, layers[layersNum - 1].output);
+
+	//float* dE_dW = multiply_mat(out.h, );
+
 }
 
 
@@ -107,7 +158,7 @@ void Perceptron::kernel2D_Render(uint32_t* out_color, uint32_t width, uint32_t h
 			for (int i = 0; i < 500; i++) {
 				p = ro + rd * t;
 
-				float distance = Forward_propagation(p, &props);
+				float distance = Forward_propagation(p, &props).distance;
 
 				t += distance;
 
@@ -135,11 +186,11 @@ void Perceptron::RayMarch(uint32_t* out_color, uint32_t width, uint32_t height) 
 	totalTime = float(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start).count()) / 1000.f;
 };
 
-void Perceptron::Test(float3* coords, float* distances, uint32_t size) {
+void Perceptron::Test(float3* points, float* expected_distances, uint32_t size) {
 	prop_data props = { layers, data, layersNum };
 
 	for (int i = 0; i < size; i++) {
-		float res = Forward_propagation(coords[i], &props) - distances[i];
+		float res = Forward_propagation(points[i], &props).distance - expected_distances[i];
 		if (res > 1e-6) {
 			std::cout << "Deviation more than eps";
 		}

@@ -13,7 +13,8 @@
 std::shared_ptr<RayMarcher> CreateRayMarcher_Generated(vk_utils::VulkanContext a_ctx, size_t a_maxThreadsGenerated);
 #endif
 
-#define LEARN
+//#define LEARN
+//#define TEST
 
 using namespace LiteMath;
 
@@ -36,7 +37,7 @@ FilePaths setPaths(std::string filename) {
 int main(){
 	WeightsData data;
 	std::vector<Layer> layers;
-	FilePaths paths = setPaths("2");
+	FilePaths paths = setPaths("1");
 
 	Files::parse_layers(paths.layers_path.c_str(), &layers);
 	Files::parse_weights(paths.weights_path.c_str(), layers, &data);
@@ -64,18 +65,19 @@ int main(){
 	pImpl->setStartData(layers.data(), data, layers.size());
 
 #ifdef LEARN
-	std::vector<float> distances;
-	std::vector<float3> coords;
+	std::vector<float> expected_distances;
+	std::vector<float3> points;
 
-	Files::parse_points(paths.points_path.c_str(), &coords, &distances);
+	Files::parse_points(paths.points_path.c_str(), &points, &expected_distances);
 
-	pImpl->Learn();
+	pImpl->Learn(points.data(), expected_distances.data());
 #endif
 #ifdef TEST
 	std::vector<float> test_distances;
-	std::vector<float3> test_coords;
-	Files::parse_coords(paths.test_points_path.c_str(), &test_coords, &test_distances);
-	pImpl->Test(test_coords.data(), test_distances.data(), test_distances.size());
+	std::vector<float3> test_points;
+
+	Files::parse_points(paths.test_points_path.c_str(), &test_points, &test_distances);
+	pImpl->Test(test_points.data(), test_distances.data(), test_distances.size());
 #else
 	pImpl->RayMarch(pixelData.data(), WIDTH, HEIGHT);
 #endif
