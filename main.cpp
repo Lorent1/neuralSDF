@@ -13,9 +13,6 @@
 std::shared_ptr<RayMarcher> CreateRayMarcher_Generated(vk_utils::VulkanContext a_ctx, size_t a_maxThreadsGenerated);
 #endif
 
-//#define LEARN
-//#define TEST
-
 using namespace LiteMath;
 
 struct FilePaths {
@@ -42,8 +39,8 @@ int main(){
 	Files::parse_layers(paths.layers_path.c_str(), &layers);
 	Files::parse_weights(paths.weights_path.c_str(), layers, &data);
 
-	uint32_t WIDTH = 256;
-	uint32_t HEIGHT = 256;
+	uint32_t WIDTH = 512;
+	uint32_t HEIGHT = 512;
 
 	std::vector<uint> pixelData(WIDTH * HEIGHT);
 

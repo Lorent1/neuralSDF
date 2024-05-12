@@ -32,53 +32,59 @@ matrix init_mat(float3 data, int N, int M) {
 	return matrix;
 }
 
-void transpose_mat(matrix* mat) {
+matrix transpose_mat(matrix* mat) {
 	int N = mat->row_num;
 	int M = mat->columns_num;
 
-	float* mat2 = (float*)calloc(N * M, sizeof(float));
-	memcpy(mat2, mat->data, N * M * sizeof(float));
-
-	matrix m = { mat2, N, M };
+	matrix transposed;
+	transposed.data = (float*)calloc(N * M, sizeof(float));
+	transposed.row_num = M;
+	transposed.columns_num = N;
 
 	for (int i = 0; i < M; i++) {
 		for (int j = 0; j < N; j++) {
-			mat->data[i * N + j] = mat2[j * M + i];
+			transposed.data[i * N + j] = mat->data[j * M + i];
 		}
 	}
+
+	return transposed;
 }
 
-matrix multiply_mat(matrix* mat1, matrix* mat2, int A_offset) {
+void multiply_mat(matrix* mat1, matrix* mat2, matrix* dest, int A_offset) {
 	if (mat1->columns_num != mat2->row_num) { std::cout << "can't multiply these matrixes"; exit(1); }
 	int N = mat1->row_num;
 	int M = mat1->columns_num;
 	int K = mat2->columns_num;
-	transpose_mat(mat2);
+	matrix transposed = transpose_mat(mat2);
 
-	matrix mat;
-	mat.data = (float*)calloc(N * K, sizeof(float));
-	mat.row_num = N;
-	mat.columns_num = K;
+	matrix* mat = new matrix();
+	mat->data = (float*)calloc(N * K, sizeof(float));
+	mat->row_num = N;
+	mat->columns_num = K;
 
 #pragma omp parallel
 	{
-		#pragma omp for collapse(2)
+		#pragma omp for
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < K; j++) {
 				int dest = i * K + j;
 				int src1 = i * M;
 				int src2 = j * M;
 				for (int s = 0; s < M; s++) {
-					mat.data[dest] += mat1->data[src1 + s + A_offset] * mat2->data[src2 + s];
+					mat->data[dest] += mat1->data[src1 + s + A_offset] * transposed.data[src2 + s];
 				}
 			}
 		}
 	}
-
-	return mat;
+	dest->data = (float*)realloc(dest->data, N * K * sizeof(float));
+	memcpy(dest->data, mat->data, N * K * sizeof(float));
+	dest->columns_num = mat->columns_num;
+	dest->row_num = mat->row_num;
+	free(mat->data);
+	delete mat;
 }
 
-matrix add_mat(matrix* mat1, matrix* mat2, int B_offset) {
+matrix* add_mat(matrix* mat1, matrix* mat2, int B_offset) {
 	int N = mat1->row_num;
 	int M = mat1->columns_num;
 
@@ -93,7 +99,7 @@ matrix add_mat(matrix* mat1, matrix* mat2, int B_offset) {
 		}
 	}
 
-	return *mat1;
+	return mat1;
 }
 
 void sin_mat(matrix* mat, int N, int M) {

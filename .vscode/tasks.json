@@ -1,0 +1,25 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "BuildRelease",
+            "type": "shell",
+            "command": "cd build-cpu && make -j 8",
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build Shaders (GLSL, example_tracer)",
+            "type": "shell",
+            "command": "cd example_tracer/shaders_generated && bash build.sh",
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}
