@@ -84,7 +84,7 @@ void multiply_mat(matrix* mat1, matrix* mat2, matrix* dest, int A_offset) {
 	delete mat;
 }
 
-matrix* add_mat(matrix* mat1, matrix* mat2, int B_offset) {
+matrix add_mat(matrix* mat1, matrix* mat2, int B_offset) {
 	int N = mat1->row_num;
 	int M = mat1->columns_num;
 
@@ -99,7 +99,7 @@ matrix* add_mat(matrix* mat1, matrix* mat2, int B_offset) {
 		}
 	}
 
-	return mat1;
+	return *mat1;
 }
 
 void sin_mat(matrix* mat, int N, int M) {

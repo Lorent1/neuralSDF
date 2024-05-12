@@ -8,7 +8,7 @@
             "name"   : "Launch (cpu)",
             "type"   : "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build-cpu/app",
+            "program": "${workspaceFolder}/build-cpu/neuralSDF",
             "args"   : ["aaa", "bbb"],
             "stopAtEntry": false,
             "cwd"    : "${workspaceFolder}",

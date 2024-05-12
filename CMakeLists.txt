@@ -53,7 +53,7 @@ if (NOT MSVC)
 endif()
 
 if(USE_VULKAN)
-  add_executable(app main.cpp
+  add_executable(neuralSDF main.cpp
                  perceptron/Perceptron.cpp
                  external/LiteMath/Image2d.cpp
 
@@ -70,15 +70,15 @@ if(USE_VULKAN)
                  external/vk-utils/vk_pipeline.cpp
                  external/vk-utils/vk_descriptor_sets.cpp)
 
-  set_target_properties(app PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-  target_link_libraries(app LINK_PUBLIC OpenMP::OpenMP_CXX volk "${PLATFORM_DEPENDEPNT_LIBS}")
+  set_target_properties(neuralSDF PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  target_link_libraries(neuralSDF LINK_PUBLIC OpenMP::OpenMP_CXX volk "${PLATFORM_DEPENDEPNT_LIBS}")
 
 else()
-  add_executable(app main.cpp
+  add_executable(neuralSDF main.cpp
                  perceptron/Perceptron.cpp
                  external/LiteMath/Image2d.cpp)
 
-  set_target_properties(app PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_target_properties(neuralSDF PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
-  target_link_libraries(app LINK_PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries(neuralSDF LINK_PUBLIC OpenMP::OpenMP_CXX)
 endif()

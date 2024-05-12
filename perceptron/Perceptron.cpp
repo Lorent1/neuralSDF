@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
-#include <Perceptron/mat_functions.h>
+#include <perceptron/mat_functions.h>
 #include <omp.h>
 
 #define K 1
@@ -16,7 +16,7 @@ struct prop_data {
 };
 
 float Forward_propagation(float3 coords, prop_data* props) {
-	matrix* result = &init_mat(coords, 3, 1);
+	matrix result = init_mat(coords, 3, 1);
 
 	Layer* layers = props->layers;
 	WeightsData data = props->data;
@@ -32,32 +32,32 @@ float Forward_propagation(float3 coords, prop_data* props) {
 	for (int i = 0; i < layersNum - 1; i++) {
 		weights->row_num = layers[i].output;
 		weights->columns_num = layers[i].input;
-		multiply_mat(weights, result, result, data.weights_offsets[i]);
+		multiply_mat(weights, &result, &result, data.weights_offsets[i]);
 
 		biases->row_num = layers[i].output;
 		biases->columns_num = 1;
-		result = add_mat(result, biases, data.biases_offsets[i]);
+		result = add_mat(&result, biases, data.biases_offsets[i]);
 
-		sin_mat(result, layers[i].output, 1);
+		sin_mat(&result, layers[i].output, 1);
 	}
 
 	// doesn't apply sin func to the output layer
 	weights->row_num = layers[layersNum - 1].output;
 	weights->columns_num = layers[layersNum - 1].input;
-	multiply_mat(weights, result, result, data.weights_offsets[layersNum - 1]);
+	multiply_mat(weights, &result, &result, data.weights_offsets[layersNum - 1]);
 
 	biases->row_num = layers[layersNum - 1].output;
 	biases->columns_num = 1;
-	result = add_mat(result, biases, data.biases_offsets[layersNum - 1]);
+	result = add_mat(&result, biases, data.biases_offsets[layersNum - 1]);
 
 	delete biases;
 	delete weights;
 
 	// the final result is matrix 1x1 - number
 
-	float distance = result->data[0];
+	float distance = result.data[0];
 
-	free(result->data);
+	free(result.data);
 
 	return distance;
 }
